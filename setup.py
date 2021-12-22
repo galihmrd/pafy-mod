@@ -23,9 +23,6 @@ setup(
     author_email="np1nagev@gmail.com",
     url="https://github.com/mps-youtube/pafy/",
     download_url="https://github.com/mps-youtube/pafy/tags",
-    extras_require={
-        'youtube-dl-backend': ["youtube-dl"],
-        },
     package_data={"": ["LICENSE", "README.rst", "CHANGELOG", "AUTHORS"]},
     include_package_data=True,
     license='LGPLv3',
