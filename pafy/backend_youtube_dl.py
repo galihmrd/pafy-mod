@@ -10,7 +10,7 @@ else:
     uni = unicode
 
 try:
-   import youtube_dl
+   import yt_dlp
 except ModuleNotFoundError:
    pass
 
@@ -37,11 +37,11 @@ class YtdlPafy(BasePafy):
         if self._have_basic:
             return
 
-        with youtube_dl.YoutubeDL(self._ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(self._ydl_opts) as ydl:
             try:
                 self._ydl_info = ydl.extract_info(self.videoid, download=False)
             # Turn into an IOError since that is what pafy previously raised
-            except youtube_dl.utils.DownloadError as e:
+            except yt_dlp.utils.DownloadError as e:
                 raise IOError(str(e).replace('YouTube said', 'Youtube says'))
 
         if self.callback:
@@ -135,7 +135,7 @@ class YtdlStream(BaseStream):
     def download(self, filepath="", quiet=False, progress="Bytes",
                  callback=None, meta=False, remux_audio=False):
 
-        downloader = youtube_dl.downloader.http.HttpFD(ydl(),
+        downloader = yt_dlp.downloader.http.HttpFD(ydl(),
             {'http_chunk_size': 10485760})
 
         progress_available = ["KB", "MB", "GB"]
