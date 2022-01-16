@@ -54,6 +54,7 @@ class YtdlPafy(BasePafy):
         self._viewcount = self._ydl_info['view_count']
         self._likes = self._ydl_info.get('like_count', 0)
         self._username = self._ydl_info['uploader_id']
+        self._subtitles = self._ydl_info.get('subtitles', {})
         self._category = self._ydl_info['categories'][0] if self._ydl_info['categories'] else ''
         self._bestthumb = self._ydl_info['thumbnails'][0]['url']
         self._bigthumb = g.urls['bigthumb'] % self.videoid
