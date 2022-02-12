@@ -28,7 +28,8 @@ opener = build_opener()
 opener.addheaders = [('User-Agent', user_agent)]
 cache = {}
 def_ydl_opts = {'quiet': True, 'prefer_insecure': False,
-               'no_warnings': True, 'writesubtitles': True}
+               'no_warnings': True, 'writesubtitles': True,
+               'geo-bypass-country': 'ID'}
 
 # The following are specific to the internal backend
 UEFSM = 'url_encoded_fmt_stream_map'
