@@ -29,7 +29,7 @@ opener.addheaders = [('User-Agent', user_agent)]
 cache = {}
 def_ydl_opts = {'quiet': True, 'prefer_insecure': False,
                'no_warnings': True, 'writesubtitles': True,
-               'geo-bypass-country': 'ID'}
+               'geo-bypass-country': 'ID', 'proxy': 'socks5://202.180.19.173:1080'}
 
 # The following are specific to the internal backend
 UEFSM = 'url_encoded_fmt_stream_map'
