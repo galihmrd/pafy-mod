@@ -12,8 +12,12 @@ python setup.py sdist bdist_wheel
 from setuptools import setup
 from pafy import __version__
 
+
+with open("requirements.txt", encoding="utf-8") as r:
+    requires = [i.strip() for i in r]
+
 setup(
-    name='pafy',
+    name='pafy-fork',
     packages=['pafy'],
     scripts=['scripts/ytdl'],
     version=__version__,
@@ -42,11 +46,11 @@ setup(
         "Operating System :: Microsoft :: Windows :: Windows Vista",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7"
-        "Programming Language :: Python :: 3.8"
-        "Programming Language :: Python :: 3.9"
-        "Programming Language :: Python :: 3.10"
-        "Programming Language :: Python :: 3.11"
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Intended Audience :: Developers",
         "Development Status :: 5 - Production/Stable",
         "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
@@ -54,5 +58,6 @@ setup(
         "Topic :: Multimedia :: Video",
         "Topic :: Internet :: WWW/HTTP"],
     long_description=open("README.rst").read(),
-    python_requires="~=3.7"
+    python_requires="~=3.7",
+    install_requires=requires
 )
