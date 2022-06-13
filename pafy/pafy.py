@@ -48,7 +48,11 @@ if os.environ.get("PAFY_BACKEND") != "internal":
         import yt_dlp
         backend = "yt-dlp"
     except ModuleNotFoundError:
-        pass
+        try:
+            import youtube_dl as yt_dlp
+            backend = "youtube-dl"
+        except ModulNotFoundError:
+            pass
 
 if os.environ.get("pafydebug") == "1":
     logging.basicConfig(level=logging.DEBUG)

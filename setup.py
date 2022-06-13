@@ -28,7 +28,7 @@ setup(
     url="https://github.com/galihmrd/pafy/",
     download_url="https://github.com/galihmrd/pafy/tags",
     extras_require={
-        'youtube-dl-backend': ["yt-dlp"],
+        'youtube-dl-backend': ["yt-dlp", "youtube-dl"],
         },
     package_data={"": ["LICENSE", "README.rst", "CHANGELOG", "AUTHORS"]},
     include_package_data=True,

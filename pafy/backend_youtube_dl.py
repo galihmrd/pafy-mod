@@ -12,7 +12,10 @@ else:
 try:
    import yt_dlp
 except ModuleNotFoundError:
-   pass
+   try:
+      import youtube_dl as yt_dlp
+   except ModulNotFoundError:
+       pass
 
 from . import g
 from .backend_shared import BasePafy, BaseStream, remux, get_status_string, get_size_done
