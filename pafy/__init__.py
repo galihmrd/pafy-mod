@@ -1,4 +1,4 @@
-__version__ = "0.5.7-fork"
+__version__ = "0.5.8-fork"
 __author__ = "np1"
 __license__ = "LGPLv3"
 
