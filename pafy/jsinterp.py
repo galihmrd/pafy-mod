@@ -18,7 +18,7 @@ class ExtractorError(Exception):
         """
 
         if video_id is not None:
-            msg = video_id + ": " + msg
+            msg = f"{video_id}: {msg}"
         if cause:
             msg += " (caused by %r)" % cause
         super(ExtractorError, self).__init__(msg)
@@ -46,7 +46,7 @@ _OPERATORS = [
     ("/", operator.truediv),
     ("*", operator.mul),
 ]
-_ASSIGN_OPERATORS = [(op + "=", opfunc) for op, opfunc in _OPERATORS]
+_ASSIGN_OPERATORS = [(f"{op}=", opfunc) for op, opfunc in _OPERATORS]
 _ASSIGN_OPERATORS.append(("=", lambda cur, right: right))
 
 _NAME_RE = r"[a-zA-Z_$][a-zA-Z_$0-9]*"
@@ -66,17 +66,14 @@ class JSInterpreter(object):
 
         should_abort = False
         stmt = stmt.lstrip()
-        stmt_m = re.match(r"var\s", stmt)
-        if stmt_m:
-            expr = stmt[len(stmt_m.group(0)) :]
+        if stmt_m := re.match(r"var\s", stmt):
+            expr = stmt[len(stmt_m[0]) :]
+        elif return_m := re.match(r"return(?:\s+|$)", stmt):
+            expr = stmt[len(return_m[0]) :]
+            should_abort = True
         else:
-            return_m = re.match(r"return(?:\s+|$)", stmt)
-            if return_m:
-                expr = stmt[len(return_m.group(0)) :]
-                should_abort = True
-            else:
-                # Try interpreting it as an expression
-                expr = stmt
+            # Try interpreting it as an expression
+            expr = stmt
 
         v = self.interpret_expression(expr, local_vars, allow_recursion)
         return v, should_abort
