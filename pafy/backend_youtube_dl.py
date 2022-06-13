@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
    try:
       import youtube_dl as yt_dlp
-   except ModulNotFoundError:
+   except ModuleNotFoundError:
        pass
 
 from . import g
