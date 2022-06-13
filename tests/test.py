@@ -45,8 +45,8 @@ class Test(unittest.TestCase):
             return
 
         Test.quick = os.environ.get("quick")
-        Test.videos = VIDEOS if not Test.quick else []
-        Test.playlists = PLAYLISTS if not Test.quick else []
+        Test.videos = [] if Test.quick else VIDEOS
+        Test.playlists = [] if Test.quick else PLAYLISTS
 
         for video in Test.videos:
             time.sleep(0 if Test.quick else self.delay)
@@ -105,7 +105,7 @@ class Test(unittest.TestCase):
         vid = pafy.new("DsAn_n6O5Ns", gdata=True)
         vstream = vid.audiostreams[-1]
         name = vstream.download(callback=callback)
-        self.assertEqual(name[0:5], "WASTE")
+        self.assertEqual(name[:5], "WASTE")
 
     @stdout_to_null
     def test_pafy_download_resume(self):

@@ -38,7 +38,7 @@ def extract_video_id(url):
         return url  # ID of video
 
     if "://" not in url:
-        url = "//" + url
+        url = f"//{url}"
     parsedurl = urlparse(url)
     if parsedurl.netloc in (
         "youtube.com",
@@ -157,7 +157,7 @@ class BasePafy(object):
             nfo = "\n".join(["%s: %s" % i for i in info])
 
         else:
-            nfo = "Pafy object: %s [%s]" % (self.videoid, self.title[:45] + "..")
+            nfo = f"Pafy object: {self.videoid} [{self.title[:45]}..]"
 
         return nfo.encode("utf8", "replace") if pyver == 2 else nfo
 
@@ -346,7 +346,7 @@ class BasePafy(object):
         """The playlist for the related YouTube mix. Returns a Playlist object."""
         if self._mix_pl is None:
             try:
-                self._mix_pl = get_playlist2("RD" + self.videoid)
+                self._mix_pl = get_playlist2(f"RD{self.videoid}")
             except IOError:
                 return None
         return self._mix_pl
@@ -478,7 +478,7 @@ class BasePafy(object):
     def getbestthumb(self):
         """Return the best available thumbnail."""
         if not self._bestthumb:
-            part_url = "http://i.ytimg.com/vi/%s/" % self.videoid
+            part_url = f"http://i.ytimg.com/vi/{self.videoid}/"
             # Thumbnail resolution sorted in descending order
             thumbs = (
                 "maxresdefault.jpg",
@@ -542,14 +542,14 @@ class BaseStream(object):
         filename = "".join(x if ok.match(x) else "_" for x in self.title)
 
         if meta:
-            filename += " - %s - %s" % (self._parent.videoid, self.itag)
+            filename += f" - {self._parent.videoid} - {self.itag}"
 
         if max_length:
             max_length = max_length + 1 + len(self.extension)
             if len(filename) > max_length:
-                filename = filename[: max_length - 3] + "..."
+                filename = f"{filename[: max_length - 3]}..."
 
-        filename += "." + self.extension
+        filename += f".{self.extension}"
         return xenc(filename)
 
     @property
@@ -635,8 +635,7 @@ class BaseStream(object):
 
     def __repr__(self):
         """Return string representation."""
-        out = "%s:%s@%s" % (self.mediatype, self.extension, self.quality)
-        return out
+        return f"{self.mediatype}:{self.extension}@{self.quality}"
 
     def get_filesize(self):
         """Return filesize of the stream in bytes.  Set member variable."""
@@ -690,7 +689,7 @@ class BaseStream(object):
             filename = self.generate_filename(meta=meta, max_length=256 - len(".temp"))
 
         filepath = os.path.join(savedir, filename)
-        temp_filepath = filepath + ".temp"
+        temp_filepath = f"{filepath}.temp"
 
         progress_available = ["KB", "MB", "GB"]
         if progress not in progress_available:
@@ -704,11 +703,12 @@ class BaseStream(object):
 
         fmode, offset = "wb", 0
 
-        if os.path.exists(temp_filepath):
-            if os.stat(temp_filepath).st_size < total:
-
-                offset = os.stat(temp_filepath).st_size
-                fmode = "ab"
+        if (
+            os.path.exists(temp_filepath)
+            and os.stat(temp_filepath).st_size < total
+        ):
+            offset = os.stat(temp_filepath).st_size
+            fmode = "ab"
 
         outfh = open(temp_filepath, fmode)
 
@@ -717,8 +717,9 @@ class BaseStream(object):
             resuming_opener = build_opener()
             resuming_opener.addheaders = [
                 ("User-Agent", g.user_agent),
-                ("Range", "bytes=%s-" % offset),
+                ("Range", f"bytes={offset}-"),
             ]
+
             response = resuming_opener.open(self.url)
             bytesdone = offset
 
@@ -774,7 +775,7 @@ def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
     """Remux audio."""
     muxer = muxer if isinstance(muxer, str) else "ffmpeg"
 
-    for tool in set([muxer, "ffmpeg", "avconv"]):
+    for tool in {muxer, "ffmpeg", "avconv"}:
         cmd = [tool, "-y", "-i", infile, "-acodec", "copy", "-vn", outfile]
 
         try:
@@ -786,7 +787,7 @@ def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
 
         else:
             os.unlink(infile)
-            dbg("remuxed audio file using %s" % tool)
+            dbg(f"remuxed audio file using {tool}")
 
             if not quiet:
                 sys.stdout.write("\nAudio remuxed.\n")
