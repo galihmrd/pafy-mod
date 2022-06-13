@@ -703,10 +703,7 @@ class BaseStream(object):
 
         fmode, offset = "wb", 0
 
-        if (
-            os.path.exists(temp_filepath)
-            and os.stat(temp_filepath).st_size < total
-        ):
+        if os.path.exists(temp_filepath) and os.stat(temp_filepath).st_size < total:
             offset = os.stat(temp_filepath).st_size
             fmode = "ab"
 
