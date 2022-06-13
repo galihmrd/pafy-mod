@@ -10,16 +10,16 @@ python setup.py sdist bdist_wheel
 """
 
 from setuptools import setup
-from pafy import __version__
 
+from pafy import __version__
 
 with open("requirements.txt", encoding="utf-8") as r:
     requires = [i.strip() for i in r]
 
 setup(
-    name='pafy-fork',
-    packages=['pafy'],
-    scripts=['scripts/ytdl'],
+    name="pafy-fork",
+    packages=["pafy"],
+    scripts=["scripts/ytdl"],
     version=__version__,
     description="Retrieve YouTube content and metadata",
     keywords=["pafy", "API", "YouTube", "youtube", "download", "video"],
@@ -28,14 +28,13 @@ setup(
     url="https://github.com/galihmrd/pafy/",
     download_url="https://github.com/galihmrd/pafy/tags",
     extras_require={
-        'youtube-dl-backend': ["yt-dlp", "youtube-dl"],
-        },
+        "youtube-dl-backend": ["yt-dlp", "youtube-dl"],
+    },
     package_data={"": ["LICENSE", "README.rst", "CHANGELOG", "AUTHORS"]},
     include_package_data=True,
-    license='LGPLv3',
+    license="LGPLv3",
     classifiers=[
-        "License :: OSI Approved :: GNU Lesser General Public License v3 "
-        "(LGPLv3)",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 " "(LGPLv3)",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS",
         "Operating System :: MacOS :: MacOS 9",
@@ -56,8 +55,9 @@ setup(
         "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
         "Topic :: Utilities",
         "Topic :: Multimedia :: Video",
-        "Topic :: Internet :: WWW/HTTP"],
+        "Topic :: Internet :: WWW/HTTP",
+    ],
     long_description=open("README.rst").read(),
     python_requires="~=3.7",
-    install_requires=requires
+    install_requires=requires,
 )
