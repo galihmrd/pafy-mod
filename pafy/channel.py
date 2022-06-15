@@ -97,7 +97,8 @@ class Channel(object):
     @property
     def playlists(self):
         if self._playlists is not None:
-            yield from self._playlists
+            for playlist in self._playlists:
+                yield playlist
             return
 
         playlists = []
@@ -130,7 +131,7 @@ class Channel(object):
                 )
                 playlists.append(pl_obj)
                 if self._callback:
-                    self._callback(f'Added playlist: {pl_data["title"]}')
+                    self._callback("Added playlist: %s" % pl_data["title"])
                 yield pl_obj
 
             if not playlistList.get("nextPageToken"):
@@ -142,7 +143,8 @@ class Channel(object):
     @property
     def subscriptions(self):
         if self._subscriptions is not None:
-            yield from self._subscriptions
+            for sub in self._subscriptions:
+                yield sub
             return
 
         subscriptions = []
@@ -150,9 +152,10 @@ class Channel(object):
 
         while True:
             subs_data = call_gdata("subscriptions", query)
-            sub_ids = [
-                sub["snippet"]["resourceId"]["channelId"] for sub in subs_data["items"]
-            ]
+            sub_ids = []
+
+            for sub in subs_data["items"]:
+                sub_ids.append(sub["snippet"]["resourceId"]["channelId"])
 
             query2 = {
                 "part": "snippet, contentDetails, statistics",
@@ -205,9 +208,9 @@ class Channel(object):
         channel_id = None
         channel_url = self._channel_url
         if chanR.match(channel_url):
-            channel_id = chanR.search(channel_url)[1]
+            channel_id = chanR.search(channel_url).group(1)
         elif userR.match(channel_url):
-            username = userR.search(channel_url)[1]
+            username = userR.search(channel_url).group(1)
             query = {
                 "part": "snippet, contentDetails, statistics",
                 "forUsername": username,
@@ -228,7 +231,8 @@ class Channel(object):
         try:
             ch = allinfo["items"][0]
         except IndexError:
-            raise ValueError(f"Unrecognized channel id, url or name : {channel_url}")
+            err = "Unrecognized channel id, url or name : %s"
+            raise ValueError(err % channel_url)
 
         self._channel_id = ch["id"]
         self._title = ch["snippet"]["title"]
