@@ -326,10 +326,7 @@ def dict_for_playlist(v):
     return dict(
         title=v["snippet"]["title"],
         author=v["snippet"]["channelTitle"],
-        thumbnail=v["snippet"]
-        .get("thumbnails", {})
-        .get("default", {})
-        .get("url"),
+        thumbnail=v["snippet"].get("thumbnails", {}).get("default", {}).get("url"),
         description=v["snippet"]["description"],
         length_seconds=parseISO8591(v["contentDetails"]["duration"]),
         category=get_categoryname(v["snippet"]["categoryId"]),

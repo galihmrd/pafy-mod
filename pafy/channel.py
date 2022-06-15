@@ -151,10 +151,8 @@ class Channel(object):
         while True:
             subs_data = call_gdata("subscriptions", query)
             sub_ids = [
-                sub["snippet"]["resourceId"]["channelId"]
-                for sub in subs_data["items"]
+                sub["snippet"]["resourceId"]["channelId"] for sub in subs_data["items"]
             ]
-
 
             query2 = {
                 "part": "snippet, contentDetails, statistics",

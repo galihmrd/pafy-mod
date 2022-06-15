@@ -67,9 +67,9 @@ class JSInterpreter(object):
         should_abort = False
         stmt = stmt.lstrip()
         if stmt_m := re.match(r"var\s", stmt):
-            expr = stmt[len(stmt_m[0]):]
+            expr = stmt[len(stmt_m[0]) :]
         elif return_m := re.match(r"return(?:\s+|$)", stmt):
-            expr = stmt[len(return_m[0]):]
+            expr = stmt[len(return_m[0]) :]
             should_abort = True
         else:
             # Try interpreting it as an expression

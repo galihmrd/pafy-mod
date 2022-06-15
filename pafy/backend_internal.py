@@ -194,8 +194,8 @@ class InternStream(BaseStream):
                 self._quality = self._bitrate
 
             self._fsize = int(sm["size"] or 0)
-                # self._bitrate = sm['bitrate']
-                # self._rawbitrate = uni(int(self._bitrate) // 1024) + "k"
+            # self._bitrate = sm['bitrate']
+            # self._rawbitrate = uni(int(self._bitrate) // 1024) + "k"
 
         else:  # not dash
             self._resolution = g.itags[self.itag][0]
