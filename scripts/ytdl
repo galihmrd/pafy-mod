@@ -19,9 +19,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function, unicode_literals
-import pafy
-import sys
+
 import os
+import sys
+
+import pafy
 
 early_py_version = sys.version_info[:2] < (2, 7)
 
@@ -86,14 +88,15 @@ def download(video, outfilepath=None, audio=False, stream=None, preftype=None):
         dl_str = "-Downloading '{0}' [{1} Bytes]"
 
     xprint(dl_str.format(stream.filename, size))
-    xprint("-Quality: %s; Format: %s" % (stream.quality, stream.extension))
+    xprint(f"-Quality: {stream.quality}; Format: {stream.extension}")
 
     if outfilepath is None: outfilepath = stream.title
 
     outdirpath = os.path.dirname(outfilepath)
     outfilename = os.path.basename(outfilepath)
 
-    if '.' not in outfilename: outfilename += '.' + preftype
+    if '.' not in outfilename:
+        outfilename += f'.{preftype}'
     outfilepath = os.path.join(outdirpath, outfilename)
 
     stream.download(quiet=False, filepath=outfilepath)
@@ -112,7 +115,7 @@ def printstreams(streams):
         sys.stdout.write(text + "-" * n + ">" + " " * (l - n - 1) + "<\r")
         sys.stdout.flush()
         megs = "%3.f" % (s.get_filesize() / 1024 ** 2) + " MB"
-        q = "[%s]" % s.quality
+        q = f"[{s.quality}]"
         out.append(fstring.format(n + 1, s.mediatype, s.extension, q, megs))
 
     sys.stdout.write("\r")
@@ -175,14 +178,12 @@ def main():
     if args.s:
         printstreams(streams)
 
-    if args.b or args.a:
+    if args.b and args.a:
+        xprint("-a and -b cannot be used together! Use only one.")
 
-        if args.a and args.b:
-            xprint("-a and -b cannot be used together! Use only one.")
-
-        else:
-            download(vid, args.o, audio=args.a, preftype=args.p)
-            sys.exit()
+    elif args.b or args.a:
+        download(vid, args.o, audio=args.a, preftype=args.p)
+        sys.exit()
 
     elif args.n:
         streamnumber = int(args.n) - 1
@@ -192,7 +193,7 @@ def main():
 
         except IndexError:
             em = "Sorry, %s is not a valid option, use 1-%s"
-            em = em % (int(args.n), len(streams))
+            em %= (int(args.n), len(streams))
             xprint(em)
 
     if not any([args.i, args.s, args.b, args.n, args.t, args.a]):
@@ -201,9 +202,6 @@ def main():
 
     elif args.t and not args.a and not args.b and not args.s:
         printstreams(streams)
-
-    else:
-        pass
 
 if __name__ == "__main__":
     main()

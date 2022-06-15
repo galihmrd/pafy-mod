@@ -1,20 +1,22 @@
+import logging
 import os
 import re
+import subprocess
 import sys
 import time
-import logging
-import subprocess
 
 if sys.version_info[:2] >= (3, 0):
     # pylint: disable=E0611,F0401,I0011
-    from urllib.request import urlopen, build_opener
     from urllib.error import HTTPError, URLError
     from urllib.parse import parse_qs, urlparse
+    from urllib.request import build_opener, urlopen
+
     uni, pyver = str, 3
 
 else:
-    from urllib2 import urlopen, build_opener, HTTPError, URLError
+    from urllib2 import HTTPError, URLError, build_opener, urlopen
     from urlparse import parse_qs, urlparse
+
     uni, pyver = unicode, 2
 
 early_py_version = sys.version_info[:2] < (2, 7)
@@ -28,22 +30,27 @@ dbg = logging.debug
 
 
 def extract_video_id(url):
-    """ Extract the video id from a url, return video id as str. """
-    idregx = re.compile(r'[\w-]{11}$')
+    """Extract the video id from a url, return video id as str."""
+    idregx = re.compile(r"[\w-]{11}$")
     url = str(url).strip()
 
     if idregx.match(url):
-        return url # ID of video
+        return url  # ID of video
 
-    if '://' not in url:
-        url = '//' + url
+    if "://" not in url:
+        url = f"//{url}"
     parsedurl = urlparse(url)
-    if parsedurl.netloc in ('youtube.com', 'www.youtube.com', 'm.youtube.com', 'gaming.youtube.com'):
+    if parsedurl.netloc in (
+        "youtube.com",
+        "www.youtube.com",
+        "m.youtube.com",
+        "gaming.youtube.com",
+    ):
         query = parse_qs(parsedurl.query)
-        if 'v' in query and idregx.match(query['v'][0]):
-            return query['v'][0]
-    elif parsedurl.netloc in ('youtu.be', 'www.youtu.be'):
-        vidid = parsedurl.path.split('/')[-1] if parsedurl.path else ''
+        if "v" in query and idregx.match(query["v"][0]):
+            return query["v"][0]
+    elif parsedurl.netloc in ("youtu.be", "www.youtu.be"):
+        vidid = parsedurl.path.split("/")[-1] if parsedurl.path else ""
         if idregx.match(vidid):
             return vidid
 
@@ -53,14 +60,21 @@ def extract_video_id(url):
 
 class BasePafy(object):
 
-    """ Class to represent a YouTube video. """
+    """Class to represent a YouTube video."""
 
-    def __init__(self, video_url, basic=True, gdata=False,
-                 size=False, callback=None, ydl_opts=None):
-        """ Set initial values. """
+    def __init__(
+        self,
+        video_url,
+        basic=True,
+        gdata=False,
+        size=False,
+        callback=None,
+        ydl_opts=None,
+    ):
+        """Set initial values."""
         self.version = __version__
         self.videoid = extract_video_id(video_url)
-        self.watchv_url = g.urls['watchv'] % self.videoid
+        self.watchv_url = g.urls["watchv"] % self.videoid
 
         self.callback = callback
         self._have_basic = False
@@ -104,58 +118,52 @@ class BasePafy(object):
                 # pylint: disable=W0104
                 s.get_filesize()
 
-
     def _fetch_basic(self):
-        """ Fetch basic data and streams. """
+        """Fetch basic data and streams."""
         raise NotImplementedError
-
 
     def _fetch_gdata(self):
-        """ Extract gdata values, fetch gdata if necessary. """
+        """Extract gdata values, fetch gdata if necessary."""
         raise NotImplementedError
 
-
     def _get_video_gdata(self, video_id):
-        """ Return json string containing video metadata from gdata api. """
+        """Return json string containing video metadata from gdata api."""
         if self.callback:
             self.callback("Fetching video gdata")
-        query = {'part': 'id,snippet,statistics',
-                 'maxResults': 1,
-                 'id': video_id}
-        gdata = call_gdata('videos', query)
+        query = {"part": "id,snippet,statistics", "maxResults": 1, "id": video_id}
+        gdata = call_gdata("videos", query)
         dbg("Fetched video gdata")
         if self.callback:
             self.callback("Fetched video gdata")
         return gdata
 
-
     def _process_streams(self):
-        """ Create Stream object lists from internal stream maps. """
+        """Create Stream object lists from internal stream maps."""
         raise NotImplementedError
 
-
     def __repr__(self):
-        """ Print video metadata. Return utf8 string. """
+        """Print video metadata. Return utf8 string."""
         if self._have_basic:
-            info = [("Title", self.title),
-                    ("Author", self.author),
-                    ("ID", self.videoid),
-                    ("Duration", self.duration),
-                    ("Rating", self.rating),
-                    ("Views", self.viewcount),
-                    ("Thumbnail", self.thumb)]
+            info = [
+                ("Title", self.title),
+                ("Author", self.author),
+                ("ID", self.videoid),
+                ("Duration", self.duration),
+                ("Rating", self.rating),
+                ("Views", self.viewcount),
+                ("Thumbnail", self.thumb),
+            ]
 
             nfo = "\n".join(["%s: %s" % i for i in info])
 
         else:
-            nfo = "Pafy object: %s [%s]" % (self.videoid,
-                                            self.title[:45] + "..")
+            nfo = f"Pafy object: {self.videoid} [{self.title[:45]}..]"
 
         return nfo.encode("utf8", "replace") if pyver == 2 else nfo
 
     @property
     def streams(self):
-        """ The streams for a video. Returns list."""
+        """The streams for a video. Returns list."""
         if not self._streams:
             self._process_streams()
 
@@ -163,7 +171,7 @@ class BasePafy(object):
 
     @property
     def allstreams(self):
-        """ All stream types for a video. Returns list. """
+        """All stream types for a video. Returns list."""
         if not self._allstreams:
             self._process_streams()
 
@@ -171,7 +179,7 @@ class BasePafy(object):
 
     @property
     def audiostreams(self):
-        """ Return a list of audio Stream objects. """
+        """Return a list of audio Stream objects."""
         if not self._audiostreams:
             self._process_streams()
 
@@ -179,7 +187,7 @@ class BasePafy(object):
 
     @property
     def videostreams(self):
-        """ The video streams for a video. Returns list. """
+        """The video streams for a video. Returns list."""
         if not self._videostreams:
             self._process_streams()
 
@@ -187,7 +195,7 @@ class BasePafy(object):
 
     @property
     def oggstreams(self):
-        """ Return a list of ogg encoded Stream objects. """
+        """Return a list of ogg encoded Stream objects."""
         if not self._oggstreams:
             self._process_streams()
 
@@ -195,7 +203,7 @@ class BasePafy(object):
 
     @property
     def m4astreams(self):
-        """ Return a list of m4a encoded Stream objects. """
+        """Return a list of m4a encoded Stream objects."""
         if not self._m4astreams:
             self._process_streams()
 
@@ -203,7 +211,7 @@ class BasePafy(object):
 
     @property
     def title(self):
-        """ Return YouTube video title as a string. """
+        """Return YouTube video title as a string."""
         if not self._title:
             self._fetch_basic()
 
@@ -211,7 +219,7 @@ class BasePafy(object):
 
     @property
     def author(self):
-        """ The uploader of the video. Returns str. """
+        """The uploader of the video. Returns str."""
         if not self._author:
             self._fetch_basic()
 
@@ -219,7 +227,7 @@ class BasePafy(object):
 
     @property
     def rating(self):
-        """ Rating for a video. Returns float. """
+        """Rating for a video. Returns float."""
         if not self._rating:
             self._fetch_basic()
 
@@ -227,7 +235,7 @@ class BasePafy(object):
 
     @property
     def length(self):
-        """ Length of a video in seconds. Returns int. """
+        """Length of a video in seconds. Returns int."""
         if not self._length:
             self._fetch_basic()
 
@@ -235,7 +243,7 @@ class BasePafy(object):
 
     @property
     def viewcount(self):
-        """ Number of views for a video. Returns int. """
+        """Number of views for a video. Returns int."""
         if not self._viewcount:
             self._fetch_basic()
 
@@ -243,35 +251,35 @@ class BasePafy(object):
 
     @property
     def bigthumb(self):
-        """ Large thumbnail image url. Returns str. """
+        """Large thumbnail image url. Returns str."""
         self._fetch_basic()
         return self._bigthumb
 
     @property
     def bigthumbhd(self):
-        """ Extra large thumbnail image url. Returns str. """
+        """Extra large thumbnail image url. Returns str."""
         self._fetch_basic()
         return self._bigthumbhd
 
     @property
     def thumb(self):
-        """ Thumbnail image url. Returns str. """
-        return g.urls['thumb'] % self.videoid
+        """Thumbnail image url. Returns str."""
+        return g.urls["thumb"] % self.videoid
 
     @property
     def duration(self):
-        """ Duration of a video (HH:MM:SS). Returns str. """
+        """Duration of a video (HH:MM:SS). Returns str."""
         if not self._length:
             self._fetch_basic()
 
-        self._duration = time.strftime('%H:%M:%S', time.gmtime(self._length))
+        self._duration = time.strftime("%H:%M:%S", time.gmtime(self._length))
         self._duration = uni(self._duration)
 
         return self._duration
 
     @property
     def keywords(self):
-        """ Return keywords as list of str. """
+        """Return keywords as list of str."""
         if not self._keywords:
             self._fetch_gdata()
 
@@ -279,7 +287,7 @@ class BasePafy(object):
 
     @property
     def category(self):
-        """ YouTube category of the video. Returns string. """
+        """YouTube category of the video. Returns string."""
         if not self._category:
             self._fetch_gdata()
 
@@ -287,7 +295,7 @@ class BasePafy(object):
 
     @property
     def description(self):
-        """ Description of the video. Returns string. """
+        """Description of the video. Returns string."""
         if not self._description:
             self._fetch_gdata()
 
@@ -295,7 +303,7 @@ class BasePafy(object):
 
     @property
     def username(self):
-        """ Return the username of the uploader. """
+        """Return the username of the uploader."""
         if not self._username:
             self._fetch_basic()
 
@@ -303,7 +311,7 @@ class BasePafy(object):
 
     @property
     def published(self):
-        """ The upload date and time of the video. Returns string. """
+        """The upload date and time of the video. Returns string."""
         if not self._published:
             self._fetch_gdata()
 
@@ -311,7 +319,7 @@ class BasePafy(object):
 
     @property
     def likes(self):
-        """ The number of likes for the video. Returns int. """
+        """The number of likes for the video. Returns int."""
         if not self._likes:
             self._fetch_basic()
 
@@ -319,24 +327,34 @@ class BasePafy(object):
 
     @property
     def dislikes(self):
-        """ The number of dislikes for the video. Returns int. """
+        """The number of dislikes for the video. Returns int."""
         if not self._dislikes:
             self._fetch_basic()
 
         return self._dislikes
 
     @property
+    def subtitles(self):
+        """The subtitles of the video. Returns dict."""
+        if not self._subtitles:
+            self._fetch_basic()
+
+        return self._subtitles
+
+    @property
     def mix(self):
-        """ The playlist for the related YouTube mix. Returns a Playlist object. """
+        """The playlist for the related YouTube mix. Returns a Playlist object."""
         if self._mix_pl is None:
             try:
-                self._mix_pl = get_playlist2("RD" + self.videoid)
+                self._mix_pl = get_playlist2(f"RD{self.videoid}")
             except IOError:
                 return None
         return self._mix_pl
 
-    def _sortvideokey(self, x, key3d=0, keyres=0, keyftype=0, preftype="any", ftypestrict=True):
-        """ Sort function. """
+    def _sortvideokey(
+        self, x, key3d=0, keyres=0, keyftype=0, preftype="any", ftypestrict=True
+    ):
+        """Sort function."""
         key3d = "3D" not in x.resolution
         keyres = int(x.resolution.split("x")[0])
         keyftype = preftype == x.extension
@@ -355,9 +373,19 @@ class BasePafy(object):
             return None
 
         if quality == "max":
-        	r = max(streams, key=lambda x:self._sortvideokey(x, preftype=preftype, ftypestrict=ftypestrict))
+            r = max(
+                streams,
+                key=lambda x: self._sortvideokey(
+                    x, preftype=preftype, ftypestrict=ftypestrict
+                ),
+            )
         elif quality == "min":
-        	r = min(streams, key=lambda x:self._sortvideokey(x, preftype=preftype, ftypestrict=ftypestrict))
+            r = min(
+                streams,
+                key=lambda x: self._sortvideokey(
+                    x, preftype=preftype, ftypestrict=ftypestrict
+                ),
+            )
         else:
             return None
 
@@ -377,8 +405,8 @@ class BasePafy(object):
         return self._getvideo(preftype, ftypestrict, vidonly=True, quality="max")
 
     def getworstvideo(self, preftype="any", ftypestrict=True):
-    	""" Return the worst resolution video-only stream. """
-    	return self._getvideo(preftype, ftypestrict, vidonly=True, quality="min")
+        """Return the worst resolution video-only stream."""
+        return self._getvideo(preftype, ftypestrict, vidonly=True, quality="min")
 
     def getbest(self, preftype="any", ftypestrict=True):
         """
@@ -390,22 +418,29 @@ class BasePafy(object):
         return self._getvideo(preftype, ftypestrict, vidonly=False, quality="max")
 
     def getworst(self, preftype="any", ftypestrict=True):
-    	""" Return the lowest resolution video+audio stream. """
-    	return self._getvideo(preftype, ftypestrict, vidonly=False, quality="min")
+        """Return the lowest resolution video+audio stream."""
+        return self._getvideo(preftype, ftypestrict, vidonly=False, quality="min")
 
-    def _sortaudiokey(self, x, keybitrate=0, keyftype=0, preftype="any", ftypestrict=True):
-        """ Sort function. """
+    def _sortaudiokey(
+        self, x, keybitrate=0, keyftype=0, preftype="any", ftypestrict=True
+    ):
+        """Sort function."""
         keybitrate = int(x.rawbitrate)
         keyftype = preftype == x.extension
         strict, nonstrict = (keyftype, keybitrate), (keybitrate, keyftype)
         return strict if ftypestrict else nonstrict
 
     def getbestaudio(self, preftype="any", ftypestrict=True):
-        """ Return the highest bitrate audio Stream object."""
+        """Return the highest bitrate audio Stream object."""
         if not self.audiostreams:
             return None
 
-        r = max(self.audiostreams, key=lambda x:self._sortaudiokey(x, preftype=preftype, ftypestrict=ftypestrict))
+        r = max(
+            self.audiostreams,
+            key=lambda x: self._sortaudiokey(
+                x, preftype=preftype, ftypestrict=ftypestrict
+            ),
+        )
 
         if ftypestrict and preftype != "any" and r.extension != preftype:
             return None
@@ -414,11 +449,16 @@ class BasePafy(object):
             return r
 
     def getworstaudio(self, preftype="any", ftypestrict=True):
-        """ Return the lowest bitrate audio Stream object."""
+        """Return the lowest bitrate audio Stream object."""
         if not self.audiostreams:
             return None
 
-        r = min(self.audiostreams, key=lambda x:self._sortaudiokey(x, preftype=preftype, ftypestrict=ftypestrict))
+        r = min(
+            self.audiostreams,
+            key=lambda x: self._sortaudiokey(
+                x, preftype=preftype, ftypestrict=ftypestrict
+            ),
+        )
 
         if ftypestrict and preftype != "any" and r.extension != preftype:
             return None
@@ -436,15 +476,17 @@ class BasePafy(object):
             return response.getcode() < 300
 
     def getbestthumb(self):
-        """ Return the best available thumbnail."""
+        """Return the best available thumbnail."""
         if not self._bestthumb:
-            part_url = "http://i.ytimg.com/vi/%s/" % self.videoid
+            part_url = f"http://i.ytimg.com/vi/{self.videoid}/"
             # Thumbnail resolution sorted in descending order
-            thumbs = ("maxresdefault.jpg",
-                      "sddefault.jpg",
-                      "hqdefault.jpg",
-                      "mqdefault.jpg",
-                      "default.jpg")
+            thumbs = (
+                "maxresdefault.jpg",
+                "sddefault.jpg",
+                "hqdefault.jpg",
+                "mqdefault.jpg",
+                "default.jpg",
+            )
             for thumb in thumbs:
                 url = part_url + thumb
                 if self._content_available(url):
@@ -453,22 +495,24 @@ class BasePafy(object):
         return self._bestthumb
 
     def populate_from_playlist(self, pl_data):
-        """ Populate Pafy object with items fetched from playlist data. """
+        """Populate Pafy object with items fetched from playlist data."""
         self._title = pl_data.get("title")
         self._author = pl_data.get("author")
         self._length = int(pl_data.get("length_seconds", 0))
         self._rating = pl_data.get("rating", 0.0)
-        self._viewcount = "".join(re.findall(r"\d", "{0}".format(pl_data.get("views", "0"))))
+        self._viewcount = "".join(
+            re.findall(r"\d", "{0}".format(pl_data.get("views", "0")))
+        )
         self._viewcount = int(self._viewcount)
         self._description = pl_data.get("description")
 
 
 class BaseStream(object):
 
-    """ YouTube video stream class. """
+    """YouTube video stream class."""
 
     def __init__(self, parent):
-        """ Set initial values. """
+        """Set initial values."""
         self._itag = None
         self._mediatype = None
         self._threed = None
@@ -489,8 +533,8 @@ class BaseStream(object):
         self._active = False
 
     def generate_filename(self, meta=False, max_length=None):
-        """ Generate filename. """
-        ok = re.compile(r'[^/]')
+        """Generate filename."""
+        ok = re.compile(r"[^/]")
 
         if os.name == "nt":
             ok = re.compile(r'[^\\/:*?"<>|]')
@@ -498,44 +542,44 @@ class BaseStream(object):
         filename = "".join(x if ok.match(x) else "_" for x in self.title)
 
         if meta:
-            filename += " - %s - %s" % (self._parent.videoid, self.itag)
+            filename += f" - {self._parent.videoid} - {self.itag}"
 
         if max_length:
             max_length = max_length + 1 + len(self.extension)
             if len(filename) > max_length:
-                filename = filename[:max_length-3] + '...'
+                filename = f"{filename[: max_length - 3]}..."
 
-        filename += "." + self.extension
+        filename += f".{self.extension}"
         return xenc(filename)
 
     @property
     def rawbitrate(self):
-        """ Return raw bitrate value. """
+        """Return raw bitrate value."""
         return self._rawbitrate
 
     @property
     def threed(self):
-        """ Return bool, True if stream is 3D. """
+        """Return bool, True if stream is 3D."""
         return self._threed
 
     @property
     def itag(self):
-        """ Return itag value of stream. """
+        """Return itag value of stream."""
         return self._itag
 
     @property
     def resolution(self):
-        """ Return resolution of stream as str. 0x0 if audio. """
+        """Return resolution of stream as str. 0x0 if audio."""
         return self._resolution
 
     @property
     def dimensions(self):
-        """ Return dimensions of stream as tuple.  (0, 0) if audio. """
+        """Return dimensions of stream as tuple.  (0, 0) if audio."""
         return self._dimensions
 
     @property
     def quality(self):
-        """ Return quality of stream (bitrate or resolution).
+        """Return quality of stream (bitrate or resolution).
 
         eg, 128k or 640x480 (str)
         """
@@ -543,12 +587,12 @@ class BaseStream(object):
 
     @property
     def title(self):
-        """ Return YouTube video title as a string. """
+        """Return YouTube video title as a string."""
         return self._parent.title
 
     @property
     def extension(self):
-        """ Return appropriate file extension for stream (str).
+        """Return appropriate file extension for stream (str).
 
         Possible values are: 3gp, m4a, m4v, mp4, webm, ogg
         """
@@ -556,12 +600,12 @@ class BaseStream(object):
 
     @property
     def bitrate(self):
-        """ Return bitrate of an audio stream. """
+        """Return bitrate of an audio stream."""
         return self._bitrate
 
     @property
     def mediatype(self):
-        """ Return mediatype string (normal, audio or video).
+        """Return mediatype string (normal, audio or video).
 
         (normal means a stream containing both video and audio.)
         """
@@ -569,33 +613,32 @@ class BaseStream(object):
 
     @property
     def notes(self):
-        """ Return additional notes regarding the stream format. """
+        """Return additional notes regarding the stream format."""
         return self._notes
 
     @property
     def filename(self):
-        """ Return filename of stream; derived from title and extension. """
+        """Return filename of stream; derived from title and extension."""
         if not self._filename:
             self._filename = self.generate_filename()
         return self._filename
 
     @property
     def url(self):
-        """ Return the url, decrypt if required. """
+        """Return the url, decrypt if required."""
         return self._url
 
     @property
     def url_https(self):
-        """ Return https url. """
+        """Return https url."""
         return self.url.replace("http://", "https://")
 
     def __repr__(self):
-        """ Return string representation. """
-        out = "%s:%s@%s" % (self.mediatype, self.extension, self.quality)
-        return out
+        """Return string representation."""
+        return f"{self.mediatype}:{self.extension}@{self.quality}"
 
     def get_filesize(self):
-        """ Return filesize of the stream in bytes.  Set member variable. """
+        """Return filesize of the stream in bytes.  Set member variable."""
         if not self._fsize:
 
             try:
@@ -610,14 +653,21 @@ class BaseStream(object):
         return self._fsize
 
     def cancel(self):
-        """ Cancel an active download. """
+        """Cancel an active download."""
         if self._active:
             self._active = False
             return True
 
-    def download(self, filepath="", quiet=False, progress="Bytes",
-                           callback=None, meta=False, remux_audio=False):
-        """ Download.  Use quiet=True to supress output. Return filename.
+    def download(
+        self,
+        filepath="",
+        quiet=False,
+        progress="Bytes",
+        callback=None,
+        meta=False,
+        remux_audio=False,
+    ):
+        """Download.  Use quiet=True to supress output. Return filename.
 
         Use meta=True to append video id and itag to generated filename
         Use remax_audio=True to remux audio file downloads
@@ -628,16 +678,18 @@ class BaseStream(object):
         savedir = filename = ""
 
         if filepath and os.path.isdir(filepath):
-            savedir, filename = filepath, self.generate_filename(max_length=256-len('.temp'))
+            savedir, filename = filepath, self.generate_filename(
+                max_length=256 - len(".temp")
+            )
 
         elif filepath:
             savedir, filename = os.path.split(filepath)
 
         else:
-            filename = self.generate_filename(meta=meta, max_length=256-len('.temp'))
+            filename = self.generate_filename(meta=meta, max_length=256 - len(".temp"))
 
         filepath = os.path.join(savedir, filename)
-        temp_filepath = filepath + ".temp"
+        temp_filepath = f"{filepath}.temp"
 
         progress_available = ["KB", "MB", "GB"]
         if progress not in progress_available:
@@ -646,24 +698,25 @@ class BaseStream(object):
         status_string = get_status_string(progress)
 
         response = g.opener.open(self.url)
-        total = int(response.info()['Content-Length'].strip())
+        total = int(response.info()["Content-Length"].strip())
         chunksize, bytesdone, t0 = 16384, 0, time.time()
 
         fmode, offset = "wb", 0
 
-        if os.path.exists(temp_filepath):
-            if os.stat(temp_filepath).st_size < total:
-
-                offset = os.stat(temp_filepath).st_size
-                fmode = "ab"
+        if os.path.exists(temp_filepath) and os.stat(temp_filepath).st_size < total:
+            offset = os.stat(temp_filepath).st_size
+            fmode = "ab"
 
         outfh = open(temp_filepath, fmode)
 
         if offset:
             # partial file exists, resume download
             resuming_opener = build_opener()
-            resuming_opener.addheaders = [('User-Agent', g.user_agent),
-                                          ("Range", "bytes=%s-" % offset)]
+            resuming_opener.addheaders = [
+                ("User-Agent", g.user_agent),
+                ("Range", f"bytes={offset}-"),
+            ]
+
             response = resuming_opener.open(self.url)
             bytesdone = offset
 
@@ -681,8 +734,12 @@ class BaseStream(object):
                 rate = 0
                 eta = 0
 
-            progress_stats = (get_size_done(bytesdone, progress),
-                              bytesdone * 1.0 / total, rate, eta)
+            progress_stats = (
+                get_size_done(bytesdone, progress),
+                bytesdone * 1.0 / total,
+                rate,
+                eta,
+            )
 
             if not chunk:
                 outfh.close()
@@ -690,7 +747,7 @@ class BaseStream(object):
 
             if not quiet:
                 status = status_string.format(*progress_stats)
-                sys.stdout.write("\r" + status + ' ' * 4 + "\r")
+                sys.stdout.write("\r" + status + " " * 4 + "\r")
                 sys.stdout.flush()
 
             if callback:
@@ -712,10 +769,10 @@ class BaseStream(object):
 
 
 def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
-    """ Remux audio. """
+    """Remux audio."""
     muxer = muxer if isinstance(muxer, str) else "ffmpeg"
 
-    for tool in set([muxer, "ffmpeg", "avconv"]):
+    for tool in {muxer, "ffmpeg", "avconv"}:
         cmd = [tool, "-y", "-i", infile, "-acodec", "copy", "-vn", outfile]
 
         try:
@@ -727,7 +784,7 @@ def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
 
         else:
             os.unlink(infile)
-            dbg("remuxed audio file using %s" % tool)
+            dbg(f"remuxed audio file using {tool}")
 
             if not quiet:
                 sys.stdout.write("\nAudio remuxed.\n")
@@ -740,16 +797,20 @@ def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
 
 
 def get_size_done(bytesdone, progress):
-    _progress_dict = {'KB': 1024.0, 'MB': 1048576.0, 'GB': 1073741824.0}
-    return round(bytesdone/_progress_dict.get(progress, 1.0), 2)
+    _progress_dict = {"KB": 1024.0, "MB": 1048576.0, "GB": 1073741824.0}
+    return round(bytesdone / _progress_dict.get(progress, 1.0), 2)
 
 
 def get_status_string(progress):
-    status_string = ('  {:,} ' + progress + ' [{:.2%}] received. Rate: [{:4.0f} '
-                     'KB/s].  ETA: [{:.0f} secs]')
+    status_string = (
+        "  {:,} " + progress + " [{:.2%}] received. Rate: [{:4.0f} "
+        "KB/s].  ETA: [{:.0f} secs]"
+    )
 
     if early_py_version:
-        status_string = ('  {0:} ' + progress + ' [{1:.2%}] received. Rate:'
-                         ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
+        status_string = (
+            "  {0:} " + progress + " [{1:.2%}] received. Rate:"
+            " [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]"
+        )
 
     return status_string
