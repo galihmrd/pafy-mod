@@ -181,7 +181,7 @@ class InternStream(BaseStream):
 
         if is_dash:
             if sm["width"] != "None":  # dash video
-                self._resolution = "%sx%s" % (sm["width"], sm["height"])
+                self._resolution = f'{sm["width"]}x{sm["height"]}'
                 self._quality = self._resolution
                 self._dimensions = (int(sm["width"]), int(sm["height"]))
 
@@ -194,15 +194,16 @@ class InternStream(BaseStream):
                 self._quality = self._bitrate
 
             self._fsize = int(sm["size"] or 0)
-            # self._bitrate = sm['bitrate']
-            # self._rawbitrate = uni(int(self._bitrate) // 1024) + "k"
+                # self._bitrate = sm['bitrate']
+                # self._rawbitrate = uni(int(self._bitrate) // 1024) + "k"
 
         else:  # not dash
             self._resolution = g.itags[self.itag][0]
             self._dimensions = tuple(self.resolution.split("-")[0].split("x"))
             self._dimensions = tuple(
-                [int(x) if x.isdigit() else x for x in self._dimensions]
+                int(x) if x.isdigit() else x for x in self._dimensions
             )
+
             self._quality = self.resolution
 
         self._extension = g.itags[self.itag][1]
@@ -270,17 +271,17 @@ def get_video_info(video_id, callback, newurl=None):
     #       just for this, or to use it for more. This was coppied from
     #       youtube-dl.
     embed_webpage = fetch_decode(g.urls["embed"])
-    sts = re.search(r'sts"\s*:\s*(\d+)', embed_webpage).group(1)
+    sts = re.search(r'sts"\s*:\s*(\d+)', embed_webpage)[1]
 
     url = g.urls["vidinfo"] % (video_id, video_id, sts)
-    url = newurl if newurl else url
+    url = newurl or url
     info = fetch_decode(url)  # bytes
     info = parseqs(info)  # unicode dict
     dbg("Fetched video info%s", " (age ver)" if newurl else "")
 
     if info["status"][0] == "fail":
         reason = info["reason"][0] or "Bad video argument"
-        raise IOError("Youtube says: %s [%s]" % (reason, video_id))
+        raise IOError(f"Youtube says: {reason} [{video_id}]")
 
     return info
 
@@ -292,7 +293,7 @@ def _extract_smap(map_name, dic, zero_idx=True):
         smap = smap[0] if zero_idx else smap
         smap = smap.split(",")
         smap = [parseqs(x) for x in smap]
-        return [dict((k, v[0]) for k, v in x.items()) for x in smap]
+        return [{k: v[0] for k, v in x.items()} for x in smap]
 
     return []
 
@@ -306,13 +307,13 @@ def _extract_dash(dashurl):
     ns = "{urn:mpeg:DASH:schema:MPD:2011}"
     ytns = "{http://youtube.com/yt/2012/10/10}"
     tree = ElementTree.fromstring(dashdata)
-    tlist = tree.findall(".//%sRepresentation" % ns)
+    tlist = tree.findall(f".//{ns}Representation")
     dashmap = []
 
     for x in tlist:
-        baseurl = x.find("%sBaseURL" % ns)
+        baseurl = x.find(f"{ns}BaseURL")
         url = baseurl.text
-        size = baseurl.get("%scontentLength" % ytns)
+        size = baseurl.get(f"{ytns}contentLength")
         bitrate = x.get("bandwidth")
         itag = uni(x.get("id"))
         width = uni(x.get("width"))
@@ -335,7 +336,7 @@ def _get_mainfunc_from_js(js):
     """Return main signature decryption function from javascript as dict."""
     dbg("Scanning js for main function.")
     m = re.search(r"\.sig\|\|([a-zA-Z0-9$]+)\(", js)
-    funcname = m.group(1)
+    funcname = m[1]
     dbg("Found main function: %s", funcname)
     jsi = JSInterpreter(js)
     return jsi.extract_function(funcname)
@@ -378,7 +379,7 @@ def fetch_cached(url, callback, encoding=None, dbg_ref="", file_prefix=""):
         data = fetch_decode(url, "utf8")  # unicode
         dbg("Fetched %s", dbg_ref)
         if callback:
-            callback("Fetched %s" % dbg_ref)
+            callback(f"Fetched {dbg_ref}")
 
         with open(cached_filename, "w") as f:
             f.write(data)
@@ -427,12 +428,12 @@ def get_js_sm(watchinfo, callback):
 
     """
     m = re.search(g.jsplayer, watchinfo)
-    myjson = json.loads(m.group(1))
+    myjson = json.loads(m[1])
     stream_info = myjson["args"]
     sm = _extract_smap(g.UEFSM, stream_info, False)
     asm = _extract_smap(g.AF, stream_info, False)
     js_url = myjson["assets"]["js"]
-    js_url = "https:" + js_url if js_url.startswith("//") else js_url
+    js_url = f"https:{js_url}" if js_url.startswith("//") else js_url
     mainfunc = funcmap.get(js_url)
 
     if not mainfunc:
@@ -444,7 +445,7 @@ def get_js_sm(watchinfo, callback):
         )
         mainfunc = _get_mainfunc_from_js(javascript)
 
-    elif mainfunc:
+    else:
         dbg("Using functions in memory extracted from %s", js_url)
         dbg("Mem contains %s js func sets", len(funcmap))
 
@@ -461,6 +462,6 @@ def _make_url(raw, sig, quick=True):
         if sig is None:
             raise IOError("Error retrieving url")
 
-        raw += "&signature=" + sig
+        raw += f"&signature={sig}"
 
     return raw
