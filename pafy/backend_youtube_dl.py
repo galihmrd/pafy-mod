@@ -3,7 +3,12 @@ import os
 import sys
 import time
 
-uni = str if sys.version_info[:2] >= (3, 0) else unicode
+if sys.version_info[:2] >= (3, 0):
+    # pylint: disable=E0611,F0401,I0011
+    uni = str
+else:
+    uni = unicode
+
 try:
     import yt_dlp
 except ModuleNotFoundError:
@@ -31,7 +36,8 @@ class YtdlPafy(BasePafy):
     def __init__(self, *args, **kwargs):
         self._ydl_info = None
         self._ydl_opts = g.def_ydl_opts
-        if ydl_opts := kwargs.get("ydl_opts"):
+        ydl_opts = kwargs.get("ydl_opts")
+        if ydl_opts:
             self._ydl_opts.update(ydl_opts)
         super(YtdlPafy, self).__init__(*args, **kwargs)
 
@@ -113,7 +119,7 @@ class YtdlStream(BaseStream):
 
         height = info.get("height") or 0
         width = info.get("width") or 0
-        self._resolution = f"{str(width)}x{str(height)}"
+        self._resolution = str(width) + "x" + str(height)
         self._dimensions = width, height
         self._bitrate = str(info.get("abr", 0)) + "k"
         self._quality = (
@@ -157,25 +163,31 @@ class YtdlStream(BaseStream):
         status_string = get_status_string(progress)
 
         def progress_hook(s):
-            if s["status"] != "downloading":
-                return
-            bytesdone = s["downloaded_bytes"]
-            total = s["total_bytes"]
-            rate = s["speed"] / 1024 if s.get("speed") is not None else 0
-            eta = 0 if s.get("eta") is None else s["eta"]
-            progress_stats = (
-                get_size_done(bytesdone, progress),
-                bytesdone * 1.0 / total,
-                rate,
-                eta,
-            )
-            if not quiet:
-                status = status_string.format(*progress_stats)
-                sys.stdout.write("\r" + status + " " * 4 + "\r")
-                sys.stdout.flush()
+            if s["status"] == "downloading":
+                bytesdone = s["downloaded_bytes"]
+                total = s["total_bytes"]
+                if s.get("speed") is not None:
+                    rate = s["speed"] / 1024
+                else:
+                    rate = 0
+                if s.get("eta") is None:
+                    eta = 0
+                else:
+                    eta = s["eta"]
 
-            if callback:
-                callback(total, *progress_stats)
+                progress_stats = (
+                    get_size_done(bytesdone, progress),
+                    bytesdone * 1.0 / total,
+                    rate,
+                    eta,
+                )
+                if not quiet:
+                    status = status_string.format(*progress_stats)
+                    sys.stdout.write("\r" + status + " " * 4 + "\r")
+                    sys.stdout.flush()
+
+                if callback:
+                    callback(total, *progress_stats)
 
         downloader._progress_hooks = [progress_hook]
 

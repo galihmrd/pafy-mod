@@ -64,11 +64,12 @@ def fetch_decode(url, encoding=None):
     try:
         req = g.opener.open(url)
     except HTTPError as e:
-        if e.getcode() != 503:
+        if e.getcode() == 503:
+            time.sleep(0.5)
+            return fetch_decode(url, encoding)
+        else:
             raise
 
-        time.sleep(0.5)
-        return fetch_decode(url, encoding)
     ct = req.headers["content-type"]
 
     if encoding:
@@ -76,7 +77,7 @@ def fetch_decode(url, encoding=None):
 
     elif "charset=" in ct:
         dbg("charset: %s", ct)
-        encoding = re.search(r"charset=([\w-]+)\s*(:?;|$)", ct)[1]
+        encoding = re.search(r"charset=([\w-]+)\s*(:?;|$)", ct).group(1)
         return req.read().decode(encoding)
 
     else:
@@ -148,7 +149,7 @@ def get_categoryname(cat_id):
         cat_cache[cat_id] = {"updated": timestamp}
         return "unknown"
     except Exception:
-        raise IOError(f"Error fetching category name for ID {cat_id}")
+        raise IOError("Error fetching category name for ID %s" % cat_id)
 
 
 def set_categories(categories):
@@ -158,11 +159,12 @@ def set_categories(categories):
     before.
     """
     timestamp = time.time()
-    if idlist := [
+    idlist = [
         cid
         for cid, item in categories.items()
         if item.get("updated", 0) < timestamp - g.lifespan
-    ]:
+    ]
+    if len(idlist) > 0:
         query = {"id": ",".join(idlist), "part": "snippet"}
         catinfo = call_gdata("videoCategories", query)
         try:
@@ -171,7 +173,7 @@ def set_categories(categories):
                 title = item.get("snippet", {}).get("title", "unknown")
                 categories[cid] = {"title": title, "updated": timestamp}
         except Exception:
-            raise IOError(f"Error fetching category name for IDs {idlist}")
+            raise IOError("Error fetching category name for IDs %s" % idlist)
     cache("categories").update(categories)
 
 

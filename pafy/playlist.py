@@ -29,7 +29,7 @@ def extract_playlist_id(playlist_url):
         playlist_id = playlist_url  # ID of video
 
     if "://" not in playlist_url:
-        playlist_url = f"//{playlist_url}"
+        playlist_url = "//" + playlist_url
     parsedurl = urlparse(playlist_url)
     if parsedurl.netloc in ("youtube.com", "www.youtube.com"):
         query = parse_qs(parsedurl.query)
@@ -50,7 +50,8 @@ def get_playlist(playlist_url, basic=False, gdata=False, size=False, callback=No
     playlist_id = extract_playlist_id(playlist_url)
 
     if not playlist_id:
-        raise ValueError(f"Unrecognized playlist url: {playlist_url}")
+        err = "Unrecognized playlist url: %s"
+        raise ValueError(err % playlist_url)
 
     url = g.urls["playlist"] % playlist_id
 
@@ -109,13 +110,13 @@ def get_playlist(playlist_url, basic=False, gdata=False, size=False, callback=No
 
         except IOError as e:
             if callback:
-                callback(f'{v["title"]}: {e.message}')
+                callback("%s: %s" % (v["title"], e.message))
             continue
 
         pafy_obj.populate_from_playlist(vid_data)
         playlist["items"].append(dict(pafy=pafy_obj, playlist_meta=vid_data))
         if callback:
-            callback(f'Added video: {v["title"]}')
+            callback("Added video: %s" % v["title"])
 
     return playlist
 
@@ -129,7 +130,7 @@ def parseISO8591(duration):
             _, hours, _, minutes, _, seconds = duration[0]
             duration = [seconds, minutes, hours]
             duration = [int(v) if len(v) > 0 else 0 for v in duration]
-            duration = sum(60**p * v for p, v in enumerate(duration))
+            duration = sum([60**p * v for p, v in enumerate(duration)])
         else:
             duration = 30
     else:
@@ -142,7 +143,8 @@ class Playlist(object):
         playlist_id = extract_playlist_id(playlist_url)
 
         if not playlist_id:
-            raise ValueError(f"Unrecognized playlist url: {playlist_url}")
+            err = "Unrecognized playlist url: %s"
+            raise ValueError(err % playlist_url)
 
         self.plid = playlist_id
         self._title = None
@@ -210,7 +212,9 @@ class Playlist(object):
         return self._len
 
     def __iter__(self):
-        yield from self._items
+        for i in self._items:
+            yield i
+
         # playlist items specific metadata
         query = {"part": "snippet", "maxResults": 50, "playlistId": self.plid}
 
@@ -245,13 +249,13 @@ class Playlist(object):
 
                 except IOError as e:
                     if self._callback:
-                        self._callback(f'{v["title"]}: {e.message}')
+                        self._callback("%s: %s" % (v["title"], e.message))
                     continue
 
                 pafy_obj.populate_from_playlist(vid_data)
                 self._items.append(pafy_obj)
                 if self._callback:
-                    self._callback(f'Added video: {vid_data["title"]}')
+                    self._callback("Added video: %s" % vid_data["title"])
 
             self._pageToken = playlistitems.get("nextPageToken", -1)
             if self._pageToken == -1:
@@ -323,7 +327,7 @@ def dict_for_playlist(v):
     """Returns a dict which can be used to initialise Pafy Object for playlist"""
 
     stats = v.get("statistics", {})
-    return dict(
+    vid_data = dict(
         title=v["snippet"]["title"],
         author=v["snippet"]["channelTitle"],
         thumbnail=v["snippet"].get("thumbnails", {}).get("default", {}).get("url"),
@@ -335,3 +339,5 @@ def dict_for_playlist(v):
         dislikes=stats.get("dislikeCount", 0),
         comments=stats.get("commentCount", 0),
     )
+
+    return vid_data
