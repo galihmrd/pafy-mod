@@ -1,2 +1,2 @@
-yt-dlp==2022.6.22.1
+yt-dlp==2022.6.29
 youtube-dl
