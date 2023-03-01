@@ -45,6 +45,7 @@ def extract_video_id(url):
         "www.youtube.com",
         "m.youtube.com",
         "gaming.youtube.com",
+        "fb.watch",
     ):
         query = parse_qs(parsedurl.query)
         if "v" in query and idregx.match(query["v"][0]):
