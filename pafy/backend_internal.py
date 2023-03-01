@@ -227,9 +227,7 @@ class InternStream(BaseStream):
     def url(self):
         """Return the url, decrypt if required."""
         if not self._url:
-
             if self._parent.age_ver:
-
                 if self._sig:
                     s = self._sig
                     self._sig = s[2:63] + s[82] + s[64:82] + s[63]
@@ -458,7 +456,6 @@ def _make_url(raw, sig, quick=True):
         raw += "&ratebypass=yes"
 
     if "signature=" not in raw:
-
         if sig is None:
             raise IOError("Error retrieving url")
 

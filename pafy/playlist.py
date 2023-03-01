@@ -70,7 +70,6 @@ def get_playlist(playlist_url, basic=False, gdata=False, size=False, callback=No
 
     # playlist items specific metadata
     for v in allinfo["video"]:
-
         vid_data = dict(
             added=v.get("added"),
             is_cc=v.get("is_cc"),
