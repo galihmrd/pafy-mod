@@ -29,9 +29,13 @@ from .util import xenc
 dbg = logging.debug
 
 FACEBOOK_DOMAIN = (
-       'https://fb.watch', 'https://www.facebook.com',  'https://fb.me',
-       'https://fb.com', 'https://m.facebook.com',
+    "https://fb.watch",
+    "https://www.facebook.com",
+    "https://fb.me",
+    "https://fb.com",
+    "https://m.facebook.com",
 )
+
 
 def extract_video_id(url):
     """Extract the video id from a url, return video id as str."""
