@@ -50,17 +50,17 @@ class YtdlPafy(BasePafy):
         if self.callback:
             self.callback("Fetched video info")
         try:
-           self._title = self._ydl_info["title"]
+            self._title = self._ydl_info["title"]
         except:
-           self._title = "NA"
+            self._title = "NA"
         try:
-           self._author = self._ydl_info["uploader"]
+            self._author = self._ydl_info["uploader"]
         except:
-           self._author = "NA"
+            self._author = "NA"
         try:
-           self._rating = self._ydl_info["average_rating"]
+            self._rating = self._ydl_info["average_rating"]
         except:
-           self._rating = "NA"
+            self._rating = "NA"
         self._length = self._ydl_info.get("duration", 0)
         self._viewcount = self._ydl_info["view_count", 0]
         self._likes = self._ydl_info.get("like_count", 0)
