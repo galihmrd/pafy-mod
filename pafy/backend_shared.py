@@ -28,12 +28,18 @@ from .util import xenc
 
 dbg = logging.debug
 
+FACEBOOK_DOMAIN = (
+       'https://fb.watch', 'https://www.facebook.com',  'https://fb.me',
+       'https://fb.com', 'https://m.facebook.com',
+)
 
 def extract_video_id(url):
     """Extract the video id from a url, return video id as str."""
     idregx = re.compile(r"[\w-]{11}$")
     if url.startswith("https://youtube.com/shorts"):
         return url.split("/")[4].split("?")[0]
+    if url.startswith(FACEBOOK_DOMAIN):
+        return url
 
     url = str(url).strip()
     if idregx.match(url):
