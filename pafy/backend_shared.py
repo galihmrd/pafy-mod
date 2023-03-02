@@ -32,8 +32,10 @@ dbg = logging.debug
 def extract_video_id(url):
     """Extract the video id from a url, return video id as str."""
     idregx = re.compile(r"[\w-]{11}$")
-    url = str(url).strip()
+    if url.startswith("https://youtube.com/shorts"):
+        return url.split("/")[4].split("?")[0]
 
+    url = str(url).strip()
     if idregx.match(url):
         return url  # ID of video
 
