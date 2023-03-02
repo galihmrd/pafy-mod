@@ -62,7 +62,7 @@ class YtdlPafy(BasePafy):
         except:
             self._rating = "NA"
         self._length = self._ydl_info.get("duration", 0)
-        self._viewcount = self._ydl_info["view_count]
+        self._viewcount = self._ydl_info["view_count"]
         self._likes = self._ydl_info.get("like_count", 0)
         self._username = self._ydl_info["uploader_id"]
         self._subtitles = self._ydl_info.get("subtitles", {})
