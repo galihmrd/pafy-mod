@@ -101,7 +101,9 @@ class InternPafy(BasePafy):
                 dashsig = re.search(r"/s/([\w\.]+)", self._dashurl)[1]
                 dbg("decrypting dash sig")
                 goodsig = _decodesig(dashsig, js_url, self.callback)
-                self._dashurl = re.sub(r"/s/[\w\.]+", f"/signature/{goodsig}", self._dashurl)
+                self._dashurl = re.sub(
+                    r"/s/[\w\.]+", f"/signature/{goodsig}", self._dashurl
+                )
 
             else:
                 s = re.search(r"/s/([\w\.]+)", self._dashurl)[1]
