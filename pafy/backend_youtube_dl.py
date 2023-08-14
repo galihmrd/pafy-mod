@@ -194,8 +194,8 @@ class YtdlStream(BaseStream):
         print("")
 
         if remux_audio and self.mediatype == "audio":
-            os.rename(filepath, filepath + ".temp")
-            remux(filepath + ".temp", filepath, quiet=quiet, muxer=remux_audio)
+            os.rename(filepath, f"{filepath}.temp")
+            remux(f"{filepath}.temp", filepath, quiet=quiet, muxer=remux_audio)
 
         return filepath
 

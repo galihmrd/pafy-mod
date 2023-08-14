@@ -98,19 +98,15 @@ class InternPafy(BasePafy):
                 funcmap[js_url] = mainfunc
                 self.sm, self.asm = smaps
                 self.js_url = js_url
-                dashsig = re.search(r"/s/([\w\.]+)", self._dashurl).group(1)
+                dashsig = re.search(r"/s/([\w\.]+)", self._dashurl)[1]
                 dbg("decrypting dash sig")
                 goodsig = _decodesig(dashsig, js_url, self.callback)
-                self._dashurl = re.sub(
-                    r"/s/[\w\.]+", "/signature/%s" % goodsig, self._dashurl
-                )
+                self._dashurl = re.sub(r"/s/[\w\.]+", f"/signature/{goodsig}", self._dashurl)
 
             else:
-                s = re.search(r"/s/([\w\.]+)", self._dashurl).group(1)
+                s = re.search(r"/s/([\w\.]+)", self._dashurl)[1]
                 s = s[2:63] + s[82] + s[64:82] + s[63]
-                self._dashurl = re.sub(
-                    r"/s/[\w\.]+", "/signature/%s" % s, self._dashurl
-                )
+                self._dashurl = re.sub(r"/s/[\w\.]+", f"/signature/{s}", self._dashurl)
 
         if self._dashurl != "unknown":
             self.dash = _extract_dash(self._dashurl)
