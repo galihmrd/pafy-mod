@@ -147,7 +147,6 @@ class YtdlStream(BaseStream):
         meta=False,
         remux_audio=False,
     ):
-
         downloader = yt_dlp.downloader.http.HttpFD(ydl(), {"http_chunk_size": 10485760})
 
         progress_available = ["KB", "MB", "GB"]

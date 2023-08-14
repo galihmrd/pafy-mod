@@ -18,7 +18,6 @@ def get_channel(channel_url, basic=False, gdata=False, size=False, callback=None
 
 class Channel(object):
     def __init__(self, channel_url, basic, gdata, size, callback):
-
         self._channel_url = channel_url
         self._channel_id = None
         self._title = None

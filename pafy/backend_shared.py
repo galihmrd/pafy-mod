@@ -640,7 +640,6 @@ class BaseStream(object):
     def get_filesize(self):
         """Return filesize of the stream in bytes.  Set member variable."""
         if not self._fsize:
-
             try:
                 dbg("Getting stream size")
                 cl = "content-length"
@@ -754,7 +753,6 @@ class BaseStream(object):
                 callback(total, *progress_stats)
 
         if self._active:
-
             if remux_audio and self.mediatype == "audio":
                 remux(temp_filepath, filepath, quiet=quiet, muxer=remux_audio)
 

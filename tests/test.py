@@ -63,7 +63,6 @@ class Test(unittest.TestCase):
                 del _
 
         for playlist in Test.playlists:
-
             playlist["fetched"] = pafy.get_playlist(playlist["identifier"])
 
         Test.hasrun = True
@@ -188,7 +187,6 @@ class Test(unittest.TestCase):
             )
 
             for prop in self.properties:
-
                 if prop != "thumb":
                     paf_prop = getattr(video["pafy"], prop)
                     exp_prop = video[prop]
