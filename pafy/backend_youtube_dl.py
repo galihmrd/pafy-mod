@@ -62,13 +62,28 @@ class YtdlPafy(BasePafy):
         except:
             self._rating = "NA"
         self._length = self._ydl_info.get("duration", 0)
-        self._viewcount = self._ydl_info["view_count"]
-        self._likes = self._ydl_info.get("like_count", 0)
-        self._username = self._ydl_info["uploader_id"]
-        self._subtitles = self._ydl_info.get("subtitles", {})
-        self._category = (
-            self._ydl_info["categories"][0] if self._ydl_info["categories"] else ""
-        )
+        try:
+            self._viewcount = self._ydl_info["view_count"]
+        except:
+            self._viewcount = "NA"
+        try:
+            self._likes = self._ydl_info.get("like_count", 0)
+        except:
+            delf._likes = "NA"
+        try:
+            self._username = self._ydl_info["uploader_id"]
+        except:
+            self._username = "NA"
+        try:
+            self._subtitles = self._ydl_info.get("subtitles", {})
+        except:
+            self._subtitles = "NA"
+        try:
+            self._category = (
+                self._ydl_info["categories"][0] if self._ydl_info["categories"] else ""
+            )
+        except:
+            self._category = "NA"
         self._bestthumb = self._ydl_info["thumbnails"][0]["url"]
         self._bigthumb = g.urls["bigthumb"] % self.videoid
         self._bigthumbhd = g.urls["bigthumbhd"] % self.videoid
